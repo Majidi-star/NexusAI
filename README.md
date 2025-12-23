@@ -8,6 +8,16 @@
 
 NexusAI is a high-performance, **Privacy-First** desktop application designed to transform organizational documents into an interactive knowledge base. By leveraging **Retrieval-Augmented Generation (RAG)**, it allows users to chat with local documents (PDF, Docx, TXT) 100% offline.
 
+---
+
+## 📸 App Preview / پیش‌نمایش برنامه
+
+<p align="center">
+  <img src="screenshots/nexus-demo.png" width="800" alt="NexusAI Desktop Interface">
+</p>
+
+---
+
 ### ✨ Key Features
 * **🔒 Local & Private**: 100% offline processing using Ollama (Llama 3); sensitive data never leaves your machine.
 * **🧠 Conversation Memory**: Intelligent context tracking for complex follow-up questions.
@@ -26,6 +36,16 @@ NexusAI is a high-performance, **Privacy-First** desktop application designed to
 ## 🇮🇷 نسخه فارسی
 
 **NexusAI** یک اپلیکیشن دسکتاپ هوشمند و **امنیت‌محور** است که مستندات سازمانی شما را به یک پایگاه دانش تعاملی تبدیل می‌کند. این برنامه با استفاده از معماری **RAG**، امکان گفتگوی مستقیم با فایل‌های (PDF، Docx، TXT) را به صورت ۱۰۰٪ آفلاین فراهم می‌کند.
+
+---
+
+## 📸 App Preview / پیش‌نمایش برنامه
+
+<p align="center">
+  <img src="screenshots/nexus-demo.png" width="800" alt="NexusAI Desktop Interface">
+</p>
+
+---
 
 ### ✨ قابلیت‌های کلیدی
 * **🔒 امنیت و حریم خصوصی**: تمامی پردازش‌ها و مدل هوش مصنوعی (Llama 3) به صورت محلی اجرا شده و داده‌ها هرگز از سیستم خارج نمی‌شوند.
