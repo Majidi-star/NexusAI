@@ -1,0 +1,15 @@
+# Node.js
+node_modules/
+npm-debug.log
+dist/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.env
+
+# Project specific
+chroma_db/
+*.pdf
+*.docx

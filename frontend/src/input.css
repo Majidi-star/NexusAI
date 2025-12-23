@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #6366f1;
+  --color-main-bg: #ffffff;
+  --color-sidebar-bg: #f4f4f5; 
+  --color-border-color: #e4e4e7; 
+  --color-main-text: #09090b; 
+}
+
+@layer base {
+  * { @apply transition-colors duration-200; box-sizing: border-box; }
+  
+  /* مهم: جلوگیری از اسکرول کل صفحه و فیکس کردن ارتفاع */
+  body { 
+    @apply overflow-hidden h-screen w-screen flex flex-col font-sans bg-main-bg text-main-text; 
+  }
+
+  textarea { 
+    @apply bg-white text-zinc-900 border-zinc-200 focus:ring-indigo-500; 
+  }
+}
+
+@layer components {
+  .drag { -webkit-app-region: drag; }
+  .no-drag { -webkit-app-region: no-drag; }
+  
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { @apply bg-transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-zinc-300 rounded-full; }
+}
