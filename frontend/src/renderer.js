@@ -13,12 +13,12 @@ let chats = JSON.parse(localStorage.getItem('saved_chats')) || [];
 let currentChatId = null;
 const addedFilePaths = new Set();
 
-// ۱. کنترل دکمه‌های پنجره (Minimize, Maximize, Close)
+// ۱. کنترل دکمه‌های پنجره
 document.getElementById('min-btn').addEventListener('click', () => window.api.minimize());
 document.getElementById('max-btn').addEventListener('click', () => window.api.maximize());
 document.getElementById('close-btn').addEventListener('click', () => window.api.close());
 
-// ۲. مدیریت اسناد و اتصال به بک‌اِند پایتون
+// ۲. مدیریت اسناد
 addDocBtn.addEventListener('click', async () => {
     const filePaths = await window.api.selectFile();
     
@@ -32,15 +32,13 @@ addDocBtn.addEventListener('click', async () => {
                 
                 addedFilePaths.add(fullPath);
                 addDocumentToList(fileName, extension, fullPath);
-                newPathsForPython.push(fullPath); // لیست برای ارسال به پایتون
+                newPathsForPython.push(fullPath);
             }
         });
 
         if (newPathsForPython.length > 0) {
             statusText.innerText = "در حال تحلیل اسناد توسط پایتون...";
-            
             try {
-                // ارسال آدرس فایل‌ها به سرور FastAPI
                 const response = await fetch('http://127.0.0.1:8000/process-docs', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -78,22 +76,41 @@ function addDocumentToList(name, ext, fullPath) {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
     `;
-    div.querySelector('.delete-doc-btn').addEventListener('click', (e) => {
+
+    // اصلاح شده: حذف واقعی از دیتابیس پایتون
+    div.querySelector('.delete-doc-btn').addEventListener('click', async (e) => {
         e.stopPropagation();
-        addedFilePaths.delete(fullPath);
-        div.remove();
+        statusText.innerText = "در حال حذف اطلاعات سند از حافظه هوشمند...";
+        
+        try {
+            const response = await fetch('http://127.0.0.1:8000/delete-doc', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ path: fullPath })
+            });
+
+            if (response.ok) {
+                addedFilePaths.delete(fullPath);
+                div.remove();
+                statusText.innerText = "سند و اطلاعات آن با موفقیت حذف شدند.";
+            } else {
+                statusText.innerText = "خطا در حذف اطلاعات سند از سمت سرور.";
+            }
+        } catch (err) {
+            console.error(err);
+            statusText.innerText = "خطا: امکان دسترسی به سرور برای حذف وجود ندارد.";
+        }
     });
+
     docList.appendChild(div);
 }
 
-// ۳. مدیریت تاریخچه گفتگوها (با قابلیت Rename مستقیم و Auto-focus)
+// ۳. مدیریت تاریخچه گفتگوها
 function createNewChat() {
     currentChatId = Date.now();
     chatContainer.innerHTML = '';
     appendMessage("سلام! چطور می‌توانم کمکتان کنم؟", 'ai');
     updateSidebarHistory();
-    
-    // Auto-focus بعد از ساخت چت جدید
     setTimeout(() => userInput.focus(), 50);
 }
 
@@ -118,7 +135,6 @@ function updateSidebarHistory() {
         `;
 
         div.addEventListener('click', () => loadChat(chat.id));
-
         const editBtn = div.querySelector('.edit-chat-btn');
         const titleSpan = div.querySelector('.chat-title-text');
 
@@ -128,7 +144,6 @@ function updateSidebarHistory() {
             input.type = 'text';
             input.value = chat.title;
             input.className = "bg-white border border-indigo-300 rounded px-1 w-full text-xs outline-none focus:ring-2 ring-indigo-500/20";
-            
             titleSpan.replaceWith(input);
             input.focus();
             input.select();
@@ -175,33 +190,41 @@ function deleteChat(id) {
     else updateSidebarHistory();
 }
 
-// ۴. مدیریت پیام‌ها و ارسال سوال به پایتون
+// ۴. مدیریت پیام‌ها با پشتیبانی از حافظه
 sendBtn.addEventListener('click', async () => {
     const text = userInput.value.trim();
     if (!text) return;
 
     if (!currentChatId) createNewChat();
 
-    appendMessage(text, 'user');
-    userInput.value = '';
-    userInput.style.height = 'auto';
-    setLoading(true);
-
     let chat = chats.find(c => c.id === currentChatId);
     if (!chat) {
         chat = { id: currentChatId, title: text.substring(0, 25) + '...', messages: [] };
         chats.push(chat);
     }
-    chat.messages.push({ text, sender: 'user' });
+
+    // تهیه تاریخچه برای پایتون
+    const historyForPython = chat.messages.map(m => ({
+        role: m.sender === 'user' ? 'user' : 'assistant',
+        content: m.text
+    }));
+
+    appendMessage(text, 'user');
+    userInput.value = '';
+    userInput.style.height = 'auto';
+    setLoading(true);
 
     try {
-        // ارسال سوال به پایتون از طریق بریج Electron
-        const response = await window.api.sendQuery(text);
+        const response = await window.api.sendQuery(text, historyForPython);
         appendMessage(response, 'ai');
+
+        chat.messages.push({ text: text, sender: 'user' });
         chat.messages.push({ text: response, sender: 'ai' });
+        
         localStorage.setItem('saved_chats', JSON.stringify(chats));
         updateSidebarHistory();
     } catch (error) {
+        console.error(error);
         appendMessage("⚠️ خطا در ارتباط با سرور هوشمند.", 'ai');
     } finally {
         setLoading(false);
@@ -250,7 +273,6 @@ userInput.addEventListener('input', function() {
     this.style.height = this.scrollHeight + 'px';
 });
 
-// لود اولیه برنامه
 updateSidebarHistory();
 if (chats.length > 0) loadChat(chats[chats.length - 1].id);
 else createNewChat();
